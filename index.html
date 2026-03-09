@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iran / US / Israel - Intelligence Briefing</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg-deep: #0a0e17;
+    --bg-card: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.08);
+    --text-primary: #f8fafc;
+    --text-secondary: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --text-faint: #475569;
+    --accent-blue: #3b82f6;
+    --accent-blue-dim: rgba(59,130,246,0.15);
+    --mono: 'JetBrains Mono', monospace;
+    --serif: 'Libre Baskerville', Georgia, serif;
+    --sans: 'Source Sans 3', system-ui, sans-serif;
+  }
+  body {
+    background: var(--bg-deep); color: var(--text-secondary);
+    font-family: var(--sans); min-height: 100vh;
+    position: relative; overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
+  }
+  .container { max-width: 740px; margin: 0 auto; padding: 32px 20px 48px; position: relative; z-index: 1; }
+
+  /* Header */
+  .header { margin-bottom: 28px; animation: fadeSlideIn 0.5s ease both; }
+  .header-label { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .header-label span { font: 700 10px/1 var(--mono); letter-spacing: 2px; color: var(--text-dim); }
+  .header-label .line { flex: 1; height: 1px; background: var(--border); }
+  h1 { font: 700 28px/1.3 var(--serif); color: var(--text-primary); }
+  .subtitle { margin-top: 6px; font-size: 14px; color: var(--text-dim); }
+
+  /* Live bar */
+  .live-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 10px;
+    animation: fadeSlideIn 0.4s ease both;
+  }
+  .live-indicator {
+    display: flex; align-items: center; gap: 8px;
+    font: 400 12px/1.4 var(--mono); color: var(--text-dim);
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 6px;
+  }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #22c55e; animation: pulse 1.5s ease-in-out infinite;
+  }
+  .refresh-btn {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-muted); padding: 8px 16px; border-radius: 6px;
+    font: 400 12px/1 var(--mono); cursor: pointer; transition: all 0.2s;
+  }
+  .refresh-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-secondary); }
+
+  /* Indonesian summary */
+  .id-summary {
+    background: linear-gradient(135deg, rgba(220,38,38,0.06), rgba(255,255,255,0.02));
+    border: 1px solid rgba(220,38,38,0.15); border-left: 3px solid #dc2626;
+    border-radius: 10px; padding: 20px 22px; margin-bottom: 24px;
+    animation: fadeSlideIn 0.4s ease 0.05s both;
+  }
+  .id-summary .label {
+    font: 700 10px/1 var(--mono); letter-spacing: 1.5px; color: #dc2626;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .id-summary .text { font: 400 14.5px/1.75 var(--sans); color: #e2e8f0; }
+  .id-summary .text em { color: #fca5a5; font-style: normal; font-weight: 600; }
+
+  /* Escalation */
+  .escalation-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 22px; margin-bottom: 24px;
+    animation: fadeSlideIn 0.4s ease 0.1s both;
+  }
+  .escalation-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+  }
+  .escalation-header .label { font: 700 10px/1 var(--mono); letter-spacing: 1.5px; color: var(--text-dim); }
+  .escalation-level-text {
+    font: 700 12px/1 var(--mono); padding: 4px 10px; border-radius: 4px; letter-spacing: 1px;
+  }
+  .meter-track {
+    position: relative; height: 10px;
+    background: rgba(255,255,255,0.06); border-radius: 5px; overflow: hidden; margin-bottom: 10px;
+  }
+  .meter-fill { height: 100%; border-radius: 5px; transition: width 1s ease; }
+  .meter-labels {
+    display: flex; justify-content: space-between;
+    font: 400 9px/1 var(--mono); color: var(--text-faint); margin-bottom: 14px;
+  }
+  .escalation-factors { display: flex; flex-wrap: wrap; gap: 6px; }
+  .esc-factor {
+    font: 400 10px/1 var(--mono); padding: 3px 8px; border-radius: 4px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: var(--text-muted);
+  }
+  .esc-factor.active { background: rgba(220,38,38,0.12); border-color: rgba(220,38,38,0.3); color: #fca5a5; }
+
+  /* ===== COMMODITY CHARTS ===== */
+  .section-label {
+    font: 700 11px/1 var(--mono); letter-spacing: 1.5px;
+    color: var(--text-dim); margin-bottom: 14px;
+  }
+  .commodity-section { margin-bottom: 24px; }
+  .commodity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .commodity-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px; position: relative;
+  }
+  .commodity-card .card-header {
+    display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;
+  }
+  .commodity-card .label {
+    font: 700 10px/1 var(--mono); letter-spacing: 1.2px; color: var(--text-dim);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .commodity-card .price-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 2px; }
+  .commodity-card .price { font: 700 26px/1 var(--serif); color: var(--text-primary); }
+  .commodity-card .change { font: 600 12px/1 var(--mono); display: inline-flex; align-items: center; gap: 3px; }
+  .commodity-card .change.up { color: #22c55e; }
+  .commodity-card .change.down { color: #ef4444; }
+  .commodity-card .source-note { font: 400 9px/1.3 var(--mono); color: var(--text-faint); margin-top: 4px; }
+
+  /* Timeframe tabs */
+  .timeframe-tabs {
+    display: flex; gap: 0; margin: 14px 0 10px;
+    border-radius: 6px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .tf-tab {
+    flex: 1; padding: 6px 0; text-align: center;
+    font: 700 10px/1 var(--mono); letter-spacing: 0.5px;
+    color: var(--text-dim); background: transparent;
+    border: none; border-right: 1px solid rgba(255,255,255,0.06);
+    cursor: pointer; transition: all 0.2s;
+  }
+  .tf-tab:last-child { border-right: none; }
+  .tf-tab:hover { background: rgba(255,255,255,0.04); color: var(--text-muted); }
+  .tf-tab.active { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+
+  /* Chart container */
+  .chart-wrap {
+    position: relative; height: 160px; margin-top: 4px;
+  }
+  .chart-wrap canvas { width: 100% !important; }
+  .chart-loading {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font: 400 11px/1 var(--mono); color: var(--text-faint);
+  }
+
+  /* News cards */
+  .headline-card {
+    background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.06));
+    border: 1px solid var(--accent-blue-dim);
+    border-radius: 12px; padding: 22px 24px; margin-bottom: 24px;
+  }
+  .headline-card .label { font: 700 10px/1 var(--mono); letter-spacing: 1.5px; color: var(--accent-blue); }
+  .headline-card .text { margin-top: 8px; font: 600 17px/1.5 var(--serif); color: #f1f5f9; }
+  .headline-card .text a {
+    color: inherit; text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,0.15); transition: border-color 0.2s;
+  }
+  .headline-card .text a:hover { border-color: var(--accent-blue); }
+  .headline-card .meta {
+    display: flex; gap: 12px; align-items: center; margin-top: 10px;
+    font: 400 11px/1 var(--mono); color: var(--text-dim); flex-wrap: wrap;
+  }
+  .news-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .news-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 20px;
+    opacity: 0; animation: fadeSlideIn 0.4s ease both; transition: border-color 0.2s;
+  }
+  .news-card:hover { border-color: rgba(255,255,255,0.15); }
+  .news-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 12px; }
+  .news-card h3 { font: 600 15px/1.4 var(--serif); color: #f1f5f9; }
+  .news-card h3 a { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.2s; }
+  .news-card h3 a:hover { border-bottom-color: rgba(255,255,255,0.3); }
+  .news-card .summary { font-size: 13.5px; color: var(--text-muted); line-height: 1.65; }
+  .news-card .card-meta { display: flex; gap: 16px; margin-top: 10px; font: 400 11px/1 var(--mono); color: var(--text-dim); flex-wrap: wrap; }
+
+  .cat-tag { font: 700 10px/1 var(--mono); letter-spacing: 1.2px; padding: 3px 8px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+  .cat-MILITARY      { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .cat-DIPLOMATIC    { background: #dbeafe; color: #1e3a8a; border: 1px solid #93c5fd; }
+  .cat-ECONOMIC      { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+  .cat-HUMANITARIAN  { background: #fce7f3; color: #9d174d; border: 1px solid #f9a8d4; }
+  .cat-NUCLEAR       { background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; }
+  .cat-GENERAL       { background: rgba(255,255,255,0.08); color: #94a3b8; border: 1px solid rgba(255,255,255,0.12); }
+  .cat-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .cat-summary .cat-tag { font-size: 11px; padding: 5px 10px; }
+
+  .quick-links { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .quick-link {
+    display: inline-block; font: 400 12px/1 var(--mono); color: var(--text-muted);
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 8px 14px; border-radius: 6px; text-decoration: none; transition: all 0.2s;
+  }
+  .quick-link:hover { background: rgba(255,255,255,0.06); color: var(--text-secondary); border-color: rgba(255,255,255,0.15); }
+
+  .footer { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px; margin-top: 8px; }
+  .footer p { font: 400 11px/1.5 var(--mono); color: var(--text-faint); text-align: center; }
+
+  /* Loading & error */
+  .loading-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; animation: fadeSlideIn 0.3s ease both; }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px; }
+  .loading-text { font: 400 14px/1 var(--mono); color: var(--text-muted); text-align: center; }
+  .loading-detail { font: 400 11px/1.4 var(--mono); color: var(--text-faint); margin-top: 8px; text-align: center; }
+  .error-state { background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3); border-radius: 10px; padding: 24px; text-align: center; }
+  .error-state p { color: #fca5a5; margin-bottom: 16px; font-size: 14px; line-height: 1.6; white-space: pre-line; }
+  .error-state button { background: #dc2626; color: #fff; border: none; padding: 10px 24px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  /* Auto-refresh countdown */
+  .auto-refresh-note {
+    font: 400 10px/1 var(--mono); color: var(--text-faint);
+    text-align: center; margin-top: 10px;
+  }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+  @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 22px; }
+    .headline-card .text { font-size: 15px; }
+    .container { padding: 20px 14px 40px; }
+    .commodity-grid { grid-template-columns: 1fr; }
+    .commodity-card .price { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <div class="header-label">
+      <span>INTELLIGENCE BRIEFING</span>
+      <div class="line"></div>
+    </div>
+    <h1>Iran / US / Israel</h1>
+    <p class="subtitle">Conflict Monitor &bull; Eskalasi &bull; Komoditas &bull; Live</p>
+  </header>
+
+  <div id="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p class="loading-text" id="progress-text">Mengambil data terbaru...</p>
+    <p class="loading-detail" id="progress-detail"></p>
+  </div>
+
+  <div id="error" style="display:none;" class="error-state">
+    <p id="error-msg"></p>
+    <button onclick="fetchAll()">Coba Lagi</button>
+  </div>
+
+  <div id="content" style="display:none;"></div>
+</div>
+
+<script>
+// ===== CONFIG =====
+const NEWS_QUERIES = ['iran+US+israel+conflict','iran+nuclear+negotiations','iran+israel+military+houthi+hezbollah'];
+const PROXIES = [
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+];
+const TIMEFRAMES = [
+  { key: '1D', range: '1d', interval: '5m', label: 'Harian' },
+  { key: '1W', range: '5d', interval: '15m', label: 'Mingguan' },
+  { key: '1M', range: '1mo', interval: '1d', label: 'Bulanan' },
+  { key: '1Y', range: '1y', interval: '1wk', label: 'Tahunan' },
+  { key: '5Y', range: '5y', interval: '1mo', label: '5 Tahun' },
+];
+
+const REFRESH_NEWS_MS = 5 * 60 * 1000;    // 5 min
+const REFRESH_PRICE_MS = 60 * 1000;        // 60 sec
+const REFRESH_CHART_MS = 2 * 60 * 1000;    // 2 min
+
+let goldChart = null, oilChart = null;
+let currentGoldTF = '1D', currentOilTF = '1D';
+let latestArticles = [], latestCommodities = {};
+let newsTimer = null, priceTimer = null, chartTimer = null, clockTimer = null;
+
+// ===== CATEGORIZATION =====
+const CAT_KW = {
+  MILITARY:['military','strike','attack','bomb','missile','drone','war','army','navy','defense','weapon','troops','combat','raid','offensive','houthi','hezbollah','hamas','idf','irgc','pentagon','kill','intercept','invasion','deploy'],
+  DIPLOMATIC:['diplomacy','diplomatic','talks','negotiat','summit','un ','united nations','ambassador','embassy','ceasefire','peace','deal','agreement','treaty','envoy','minister'],
+  NUCLEAR:['nuclear','uranium','enrichment','centrifuge','iaea','atomic','nonproliferation','jcpoa','breakout'],
+  ECONOMIC:['sanction','oil','trade','economic','economy','market','price','export','import','barrel','energy','financial','tariff'],
+  HUMANITARIAN:['humanitarian','civilian','refugee','aid','crisis','casualt','death toll','displacement','hospital','relief','evacuat']
+};
+function categorize(t){const l=t.toLowerCase();let b='GENERAL',bc=0;for(const[c,kw]of Object.entries(CAT_KW)){const n=kw.filter(k=>l.includes(k)).length;if(n>bc){bc=n;b=c;}}return b;}
+
+// ===== ESCALATION =====
+const ESC_FACTORS = [
+  {id:'direct_strike',label:'Serangan langsung antar negara',keywords:['iran strikes israel','israel strikes iran','us strikes iran','iran attacks','retaliatory strike','direct attack','military strike on iran','strike on israel']},
+  {id:'nuclear',label:'Eskalasi nuklir',keywords:['nuclear weapon','nuclear bomb','uranium enrichment 90','nuclear warhead','nuclear threat','atomic weapon','breakout time']},
+  {id:'troops',label:'Pengerahan pasukan besar',keywords:['deploy troops','ground invasion','military buildup','troop deployment','boots on the ground','military mobiliz','carrier group','aircraft carrier']},
+  {id:'proxy',label:'Konflik proxy meluas',keywords:['houthi','hezbollah attack','hamas','proxy war','yemen','lebanon','syria attack','iraq militia','red sea']},
+  {id:'alliance',label:'Keterlibatan blok militer',keywords:['nato','russia support','china support','coalition','alliance','mutual defense','collective defense']},
+  {id:'civilians',label:'Korban sipil massal',keywords:['civilian casualties','massacre','death toll','war crime','genocide','mass casualt','humanitarian catastroph']},
+  {id:'sanctions',label:'Sanksi ekonomi berat',keywords:['sanction','embargo','economic war','trade block','oil embargo','swift ban']},
+  {id:'rhetoric',label:'Retorika perang tinggi',keywords:['threat of war','world war','total war','all-out war','declaration of war','act of war','existential threat','annihilat']},
+];
+function analyzeEscalation(articles){
+  const all=articles.map(a=>(a.title+' '+a.summary).toLowerCase()).join(' ');
+  const active=[];let score=0;
+  ESC_FACTORS.forEach(f=>{const h=f.keywords.filter(k=>all.includes(k)).length;if(h>0){active.push(f.id);score+=Math.min(h,3);}});
+  const pct=Math.min(Math.round((score/(ESC_FACTORS.length*3))*100),100);
+  let level,color,bg;
+  if(pct>=75){level='KRITIS';color='#dc2626';bg='rgba(220,38,38,0.15)';}
+  else if(pct>=55){level='TINGGI';color='#ea580c';bg='rgba(234,88,12,0.12)';}
+  else if(pct>=35){level='WASPADA';color='#d97706';bg='rgba(217,119,6,0.12)';}
+  else if(pct>=15){level='SEDANG';color='#2563eb';bg='rgba(37,99,235,0.12)';}
+  else{level='RENDAH';color='#16a34a';bg='rgba(22,163,74,0.12)';}
+  return {pct,level,color,bgColor:bg,activeFactors:active};
+}
+
+function generateSummary(articles,cc,esc){
+  const mil=cc.MILITARY||0,dip=cc.DIPLOMATIC||0,nuc=cc.NUCLEAR||0,tot=articles.length;
+  let p=[`Terdapat <em>${tot} berita</em> terkini mengenai konflik Iran-AS-Israel.`];
+  if(mil>0&&mil>=dip)p.push(`Perkembangan didominasi oleh berita <em>militer (${mil} artikel)</em>, menunjukkan ketegangan yang masih tinggi.`);
+  else if(dip>0)p.push(`Terdapat sinyal <em>diplomasi aktif (${dip} artikel)</em>, mengindikasikan upaya de-eskalasi.`);
+  if(nuc>0)p.push(`Isu <em>nuklir muncul dalam ${nuc} laporan</em>.`);
+  p.push(`Level eskalasi: <em>${esc.level} (${esc.pct}%)</em>.`);
+  if(articles[0])p.push(`Berita utama: <em>${articles[0].title}</em>.`);
+  return p.join(' ');
+}
+
+// ===== FETCH HELPERS =====
+async function fetchViaProxy(url){
+  for(let i=0;i<PROXIES.length;i++){
+    try{
+      const r=await fetch(PROXIES[i](url),{signal:AbortSignal.timeout(10000)});
+      if(!r.ok)continue;
+      const t=await r.text();
+      if(t.trim().startsWith('{')||t.trim().startsWith('['))return JSON.parse(t);
+      if(t.includes('<item>')){return{__xml:t};}
+    }catch(e){continue;}
+  }
+  return null;
+}
+
+function parseRSS(xml){
+  const doc=new DOMParser().parseFromString(xml,'text/xml');
+  const items=[];
+  doc.querySelectorAll('item').forEach(e=>{
+    const g=tag=>{const el=e.querySelector(tag);return el?el.textContent.trim():'';};
+    items.push({title:g('title'),link:g('link'),description:g('description'),pubDate:g('pubDate'),source:g('source')||extractSource(g('title'))});
+  });
+  return items;
+}
+
+// ===== NEWS =====
+async function fetchNews(silent){
+  if(!silent){setText('progress-detail','Memindai sumber berita...');}
+  const all=[],seen=new Set();
+  for(const q of NEWS_QUERIES){
+    const url=`https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en`;
+    const data=await fetchViaProxy(url);
+    if(!data)continue;
+    let items=[];
+    if(data.__xml)items=parseRSS(data.__xml);
+    else if(data.status==='ok'&&data.items)items=data.items;
+    items.forEach(it=>{const k=(it.title||'').trim().toLowerCase().replace(/\s+/g,' ');if(k&&!seen.has(k)){seen.add(k);all.push(it);}});
+  }
+  all.sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
+  return all.slice(0,20).map(it=>({
+    title:it.title||'Untitled',link:it.link||'#',
+    summary:stripHTML(it.description||it.content||'').slice(0,300),
+    source:it.source||it.author||extractSource(it.title),
+    date:it.pubDate,
+    category:categorize((it.title||'')+' '+stripHTML(it.description||''))
+  }));
+}
+
+// ===== COMMODITY PRICES (current) =====
+async function fetchPrices(){
+  const res={gold:null,oil:null};
+  for(const[name,sym]of [['gold','GC=F'],['oil','CL=F']]){
+    try{
+      const data=await fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=2d`);
+      if(data&&data.chart&&data.chart.result){
+        const m=data.chart.result[0].meta;
+        const p=m.regularMarketPrice,pc=m.chartPreviousClose||m.previousClose;
+        const ch=p-pc,chp=(ch/pc)*100;
+        res[name]={price:p.toFixed(2),change:ch.toFixed(2),changePct:chp.toFixed(2),up:ch>=0};
+      }
+    }catch(e){console.log(name+' price fail:',e.message);}
+  }
+  return res;
+}
+
+// ===== COMMODITY CHART DATA =====
+async function fetchChartData(symbol, range, interval){
+  try{
+    const data=await fetchViaProxy(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${interval}&range=${range}`);
+    if(data&&data.chart&&data.chart.result){
+      const r=data.chart.result[0];
+      const ts=r.timestamp||[];
+      const closes=(r.indicators.quote[0].close||[]);
+      const labels=[],values=[];
+      for(let i=0;i<ts.length;i++){
+        if(closes[i]!=null){
+          labels.push(ts[i]*1000);
+          values.push(closes[i]);
+        }
+      }
+      return {labels,values};
+    }
+  }catch(e){console.log('Chart fail:',e.message);}
+  return null;
+}
+
+// ===== UTILS =====
+function timeAgo(d){try{const df=Date.now()-new Date(d).getTime(),m=Math.floor(df/60000);if(m<2)return'Baru saja';if(m<60)return m+' menit lalu';const h=Math.floor(m/60);if(h<24)return h===1?'1 jam lalu':h+' jam lalu';const dy=Math.floor(h/24);return dy===1?'Kemarin':dy+' hari lalu';}catch{return'';}}
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function stripHTML(h){const t=document.createElement('div');t.innerHTML=h||'';return(t.textContent||'').trim();}
+function extractSource(t){const m=(t||'').match(/\s[-\u2013\u2014]\s([^-\u2013\u2014]+)$/);return m?m[1].trim():'';}
+function show(id){document.getElementById(id).style.display='';}
+function hide(id){document.getElementById(id).style.display='none';}
+function setText(id,t){document.getElementById(id).textContent=t;}
+
+// ===== CHART RENDERING =====
+function formatChartDate(ts, range){
+  const d=new Date(ts);
+  if(range==='1d')return d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+  if(range==='5d')return d.toLocaleDateString('id-ID',{weekday:'short',hour:'2-digit',minute:'2-digit'});
+  if(range==='1mo')return d.toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+  if(range==='1y')return d.toLocaleDateString('id-ID',{month:'short',year:'2-digit'});
+  return d.toLocaleDateString('id-ID',{month:'short',year:'numeric'});
+}
+
+function createOrUpdateChart(canvasId, chartRef, data, range, color){
+  const ctx=document.getElementById(canvasId);
+  if(!ctx)return null;
+
+  const labels=data.labels.map(ts=>formatChartDate(ts,range));
+  const isUp=data.values[data.values.length-1]>=data.values[0];
+  const lineColor=isUp?'#22c55e':'#ef4444';
+  const fillColor=isUp?'rgba(34,197,94,0.08)':'rgba(239,68,68,0.08)';
+
+  const config={
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        data:data.values,
+        borderColor:lineColor,
+        backgroundColor:fillColor,
+        borderWidth:1.5,
+        pointRadius:0,
+        pointHoverRadius:4,
+        pointHoverBackgroundColor:lineColor,
+        fill:true,
+        tension:0.3,
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      animation:{duration:600},
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#1e293b',
+          titleColor:'#94a3b8',
+          bodyColor:'#f1f5f9',
+          titleFont:{family:'JetBrains Mono',size:10},
+          bodyFont:{family:'JetBrains Mono',size:12,weight:'bold'},
+          padding:10,
+          cornerRadius:6,
+          displayColors:false,
+          callbacks:{
+            label:function(ctx){return '$'+ctx.parsed.y.toFixed(2);}
+          }
+        }
+      },
+      scales:{
+        x:{
+          display:true,
+          grid:{color:'rgba(255,255,255,0.03)'},
+          ticks:{color:'#475569',font:{family:'JetBrains Mono',size:9},maxTicksLimit:6,maxRotation:0},
+          border:{display:false}
+        },
+        y:{
+          display:true,
+          position:'right',
+          grid:{color:'rgba(255,255,255,0.03)'},
+          ticks:{color:'#475569',font:{family:'JetBrains Mono',size:9},maxTicksLimit:5,
+            callback:function(v){return'$'+v.toFixed(0);}
+          },
+          border:{display:false}
+        }
+      }
+    }
+  };
+
+  if(chartRef){
+    chartRef.data.labels=labels;
+    chartRef.data.datasets[0].data=data.values;
+    chartRef.data.datasets[0].borderColor=lineColor;
+    chartRef.data.datasets[0].backgroundColor=fillColor;
+    chartRef.update('none');
+    return chartRef;
+  }
+  return new Chart(ctx,config);
+}
+
+// ===== TIMEFRAME SWITCHING =====
+async function switchTimeframe(commodity, tfKey){
+  const tf=TIMEFRAMES.find(t=>t.key===tfKey);
+  if(!tf)return;
+
+  const sym=commodity==='gold'?'GC=F':'CL=F';
+  const canvasId=commodity+'-chart';
+
+  // Update active tab
+  document.querySelectorAll(`.tf-tab[data-commodity="${commodity}"]`).forEach(t=>{
+    t.classList.toggle('active',t.dataset.tf===tfKey);
+  });
+
+  // Show loading
+  const wrap=document.getElementById(commodity+'-chart-wrap');
+  if(wrap){
+    const existing=wrap.querySelector('.chart-loading');
+    if(!existing){
+      const ld=document.createElement('div');
+      ld.className='chart-loading';
+      ld.textContent='Memuat grafik...';
+      wrap.appendChild(ld);
+    }
+  }
+
+  if(commodity==='gold')currentGoldTF=tfKey;
+  else currentOilTF=tfKey;
+
+  const data=await fetchChartData(sym,tf.range,tf.interval);
+
+  // Remove loading
+  if(wrap){const ld=wrap.querySelector('.chart-loading');if(ld)ld.remove();}
+
+  if(data&&data.labels.length>0){
+    if(commodity==='gold') goldChart=createOrUpdateChart(canvasId,goldChart,data,tf.range,'#eab308');
+    else oilChart=createOrUpdateChart(canvasId,oilChart,data,tf.range,'#3b82f6');
+  }
+}
+
+// Make global for onclick
+window.switchTimeframe=switchTimeframe;
+
+// ===== RENDER =====
+function renderAll(articles, commodities){
+  hide('loading');
+
+  latestArticles=articles;
+  latestCommodities=commodities;
+
+  const top=articles[0],rest=articles.slice(1);
+  const cc={};articles.forEach(a=>{cc[a.category]=(cc[a.category]||0)+1;});
+  const esc_data=analyzeEscalation(articles);
+  const summaryHTML=generateSummary(articles,cc,esc_data);
+
+  const gd=commodities.gold, od=commodities.oil;
+
+  function priceBlock(data, label){
+    if(!data)return `<div class="price" style="font-size:14px;color:var(--text-dim)">Data tidak tersedia</div>`;
+    return `
+      <div class="price-row">
+        <div class="price">$${data.price}</div>
+        <span class="change ${data.up?'up':'down'}">${data.up?'&#9650;':'&#9660;'} $${Math.abs(parseFloat(data.change)).toFixed(2)} (${data.up?'+':''}${data.changePct}%)</span>
+      </div>`;
+  }
+
+  function tfTabs(commodity){
+    return `<div class="timeframe-tabs">${TIMEFRAMES.map(tf=>
+      `<button class="tf-tab ${tf.key==='1D'?'active':''}" data-commodity="${commodity}" data-tf="${tf.key}" onclick="switchTimeframe('${commodity}','${tf.key}')">${tf.key}</button>`
+    ).join('')}</div>`;
+  }
+
+  let cards='';
+  rest.forEach((a,i)=>{
+    cards+=`
+      <div class="news-card" style="animation-delay:${0.15+i*0.06}s">
+        <div class="news-card-header">
+          <h3><a href="${esc(a.link)}" target="_blank" rel="noopener">${esc(a.title)}</a></h3>
+          <span class="cat-tag cat-${a.category}">${a.category}</span>
+        </div>
+        ${a.summary?`<p class="summary">${esc(a.summary)}</p>`:''}
+        <div class="card-meta">
+          ${a.source?`<span>${esc(a.source)}</span>`:''}
+          <span>${timeAgo(a.date)}</span>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById('content').innerHTML=`
+    <!-- LIVE BAR -->
+    <div class="live-bar">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span id="live-clock"></span>
+      </div>
+      <button class="refresh-btn" onclick="fetchAll()">&#x21BB; Refresh</button>
+    </div>
+
+    <!-- RINGKASAN -->
+    <div class="id-summary">
+      <div class="label"><span class="flag">&#127470;&#127465;</span> RINGKASAN SITUASI</div>
+      <div class="text">${summaryHTML}</div>
+    </div>
+
+    <!-- ESKALASI -->
+    <div class="escalation-card">
+      <div class="escalation-header">
+        <span class="label">&#x26A0;&#xFE0F; INDIKATOR ESKALASI PERANG DUNIA III</span>
+        <span class="escalation-level-text" style="background:${esc_data.bgColor};color:${esc_data.color};border:1px solid ${esc_data.color}40">${esc_data.level} ${esc_data.pct}%</span>
+      </div>
+      <div class="meter-track">
+        <div class="meter-fill" style="width:${esc_data.pct}%;background:linear-gradient(90deg,#16a34a,#d97706 50%,#dc2626);"></div>
+      </div>
+      <div class="meter-labels"><span>RENDAH</span><span>SEDANG</span><span>WASPADA</span><span>TINGGI</span><span>KRITIS</span></div>
+      <div class="escalation-factors">
+        ${ESC_FACTORS.map(f=>`<span class="esc-factor ${esc_data.activeFactors.includes(f.id)?'active':''}">${f.label}</span>`).join('')}
+      </div>
+    </div>
+
+    <!-- KOMODITAS -->
+    <div class="section-label">&#x1F4C8; HARGA KOMODITAS DUNIA (LIVE)</div>
+    <div class="commodity-section">
+      <div class="commodity-grid">
+        <!-- GOLD -->
+        <div class="commodity-card">
+          <div class="card-header">
+            <div class="label">&#x1F947; EMAS (XAU)</div>
+          </div>
+          ${priceBlock(gd)}
+          <div class="source-note">Yahoo Finance &middot; GC=F &middot; Auto-update 60s</div>
+          ${tfTabs('gold')}
+          <div class="chart-wrap" id="gold-chart-wrap">
+            <canvas id="gold-chart"></canvas>
+            <div class="chart-loading">Memuat grafik...</div>
+          </div>
+        </div>
+        <!-- OIL -->
+        <div class="commodity-card">
+          <div class="card-header">
+            <div class="label">&#x1F6E2;&#xFE0F; MINYAK (WTI)</div>
+          </div>
+          ${priceBlock(od)}
+          <div class="source-note">Yahoo Finance &middot; CL=F &middot; Auto-update 60s</div>
+          ${tfTabs('oil')}
+          <div class="chart-wrap" id="oil-chart-wrap">
+            <canvas id="oil-chart"></canvas>
+            <div class="chart-loading">Memuat grafik...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEADLINE -->
+    <div class="headline-card">
+      <span class="label">BERITA UTAMA</span>
+      <p class="text"><a href="${esc(top.link)}" target="_blank" rel="noopener">${esc(top.title)}</a></p>
+      <div class="meta">
+        ${top.source?`<span>${esc(top.source)}</span>`:''}
+        <span>${timeAgo(top.date)}</span>
+        <span class="cat-tag cat-${top.category}" style="font-size:9px;padding:2px 6px;">${top.category}</span>
+      </div>
+    </div>
+
+    <!-- KATEGORI -->
+    <section>
+      <div class="section-label">KATEGORI LIPUTAN</div>
+      <div class="cat-summary">
+        ${Object.entries(cc).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`<span class="cat-tag cat-${c}">${c} (${n})</span>`).join('')}
+      </div>
+    </section>
+
+    <!-- BERITA -->
+    <section>
+      <div class="section-label">SEMUA PERKEMBANGAN</div>
+      <div class="news-list">${cards}</div>
+    </section>
+
+    <!-- SUMBER -->
+    <section>
+      <div class="section-label">SUMBER ANALISIS MENDALAM</div>
+      <div class="quick-links">
+        <a class="quick-link" href="https://www.aljazeera.com/tag/iran/" target="_blank">Al Jazeera</a>
+        <a class="quick-link" href="https://www.reuters.com/world/middle-east/" target="_blank">Reuters</a>
+        <a class="quick-link" href="https://www.bbc.com/news/world/middle_east" target="_blank">BBC</a>
+        <a class="quick-link" href="https://www.middleeasteye.net/" target="_blank">Middle East Eye</a>
+        <a class="quick-link" href="https://www.timesofisrael.com/" target="_blank">Times of Israel</a>
+        <a class="quick-link" href="https://www.iaea.org/newscenter/pressreleases" target="_blank">IAEA</a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>Live feed via Google News RSS. Komoditas dari Yahoo Finance. Auto-refresh: harga 60s, berita 5 menit, grafik 2 menit.</p>
+    </footer>
+  `;
+
+  show('content');
+
+  // Initialize charts
+  goldChart=null; oilChart=null;
+  loadInitialCharts();
+  startAutoRefresh();
+  startClock();
+}
+
+async function loadInitialCharts(){
+  const tf=TIMEFRAMES[0];
+  const[gData,oData]=await Promise.all([
+    fetchChartData('GC=F',tf.range,tf.interval),
+    fetchChartData('CL=F',tf.range,tf.interval)
+  ]);
+  // Remove loading indicators
+  document.querySelectorAll('.chart-loading').forEach(el=>el.remove());
+
+  if(gData&&gData.labels.length>0)goldChart=createOrUpdateChart('gold-chart',null,gData,tf.range,'#eab308');
+  if(oData&&oData.labels.length>0)oilChart=createOrUpdateChart('oil-chart',null,oData,tf.range,'#3b82f6');
+}
+
+// ===== AUTO-REFRESH =====
+function startAutoRefresh(){
+  clearInterval(newsTimer);clearInterval(priceTimer);clearInterval(chartTimer);
+
+  // Price refresh every 60s
+  priceTimer=setInterval(async()=>{
+    const prices=await fetchPrices();
+    if(prices.gold||prices.oil){
+      latestCommodities=prices;
+      updatePriceDisplay(prices);
+    }
+  },REFRESH_PRICE_MS);
+
+  // News refresh every 5 min
+  newsTimer=setInterval(async()=>{
+    const arts=await fetchNews(true);
+    if(arts.length>0){
+      latestArticles=arts;
+      // Soft-update: just re-render the full page
+      renderAll(arts,latestCommodities);
+    }
+  },REFRESH_NEWS_MS);
+
+  // Chart refresh every 2 min
+  chartTimer=setInterval(async()=>{
+    const gTF=TIMEFRAMES.find(t=>t.key===currentGoldTF);
+    const oTF=TIMEFRAMES.find(t=>t.key===currentOilTF);
+    const[gData,oData]=await Promise.all([
+      fetchChartData('GC=F',gTF.range,gTF.interval),
+      fetchChartData('CL=F',oTF.range,oTF.interval)
+    ]);
+    if(gData&&gData.labels.length>0)goldChart=createOrUpdateChart('gold-chart',goldChart,gData,gTF.range);
+    if(oData&&oData.labels.length>0)oilChart=createOrUpdateChart('oil-chart',oilChart,oData,oTF.range);
+  },REFRESH_CHART_MS);
+}
+
+function updatePriceDisplay(prices){
+  // Quick DOM update for prices without full re-render
+  const cards=document.querySelectorAll('.commodity-card');
+  if(cards.length>=2){
+    [['gold',0],['oil',1]].forEach(([name,idx])=>{
+      const d=prices[name];
+      if(!d)return;
+      const card=cards[idx];
+      const priceEl=card.querySelector('.price');
+      const changeEl=card.querySelector('.change');
+      if(priceEl)priceEl.textContent='$'+d.price;
+      if(changeEl){
+        changeEl.className='change '+(d.up?'up':'down');
+        changeEl.innerHTML=(d.up?'&#9650;':'&#9660;')+' $'+Math.abs(parseFloat(d.change)).toFixed(2)+' ('+(d.up?'+':'')+d.changePct+'%)';
+      }
+    });
+  }
+}
+
+function startClock(){
+  clearInterval(clockTimer);
+  function tick(){
+    const el=document.getElementById('live-clock');
+    if(el){
+      const now=new Date();
+      el.textContent='LIVE '+now.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' WIB';
+    }
+  }
+  tick();
+  clockTimer=setInterval(tick,1000);
+}
+
+// ===== MAIN =====
+async function fetchAll(){
+  hide('content');hide('error');show('loading');
+  setText('progress-text','Mengambil data terbaru...');
+  setText('progress-detail','');
+
+  try{
+    const[articles,commodities]=await Promise.all([fetchNews(false),fetchPrices()]);
+    if(articles.length===0)throw new Error('Tidak dapat mengambil berita.\n\nSolusi:\n1. Jalankan local server: npx serve .\n2. Gunakan extension "CORS Unblock"\n3. Upload ke hosting gratis (Netlify Drop, Vercel)');
+    setText('progress-text','Menyusun briefing...');
+    renderAll(articles,commodities);
+  }catch(err){
+    console.error(err);
+    hide('loading');
+    document.getElementById('error-msg').innerText=err.message;
+    show('error');
+  }
+}
+
+fetchAll();
+</script>
+</body>
+</html>
